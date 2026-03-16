@@ -732,14 +732,11 @@ class FractalApp:
     def _print_help(self) -> None:
         """Stampa i comandi disponibili nel terminale."""
         help_text = """
-╔══════════════════════════════════════════════════════════════╗
-║  CONTROLLI FRATTALE                                          ║
-╠══════════════════════════════════════════════════════════════╣
-║  m=Mandelbrot j=Julia b=BurningShip t=Tricorn n=Newton        ║
-║  + - zoom   frecce sposta   click centra   r reset             ║
-║  [ ] iter   c colori   s salva   S 4K   a anim   u indietro   ║
-║  x copia params   Julia: 1-4 Re/Im   5-9 preset                ║
-╚══════════════════════════════════════════════════════════════╝
+CONTROLLI FRATTALE
+  m=Mandelbrot j=Julia b=BurningShip t=Tricorn n=Newton
+  + - zoom   frecce sposta   click centra   r reset
+  [ ] iter   c colori   s salva   S 4K   a anim   u indietro
+  x copia params   Julia: 1-4 Re/Im   5-9 preset
 """
         print(help_text)
 
