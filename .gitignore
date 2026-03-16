@@ -11,4 +11,4 @@ dist/
 build/
 *.png
 *.gif
-.DS_Store
+.DS_Store&#10;&#10;# PyInstaller & venv for exe build&#10;fractal_exe_env/&#10;build/&#10;dist/&#10;*.spec
