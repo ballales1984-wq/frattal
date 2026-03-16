@@ -16,7 +16,7 @@ Visualizzatore interattivo con supporto **GPU (OpenCL)** per AMD Radeon.
 pip install -r requirements.txt
 ```
 
-### Esecuzione
+### Esecuzione Python
 
 ```bash
 # GPU
@@ -27,45 +27,48 @@ python fractal_viewer.py --backend opencl --fullscreen
 
 # Tipo iniziale
 python fractal_viewer.py --type burning_ship --backend opencl
-
-# Modalità 3D (superficie)
-python fractal_viewer.py --mode 3d
-
-# 3D con GPU
-python fractal_viewer.py --mode 3d --backend opencl
 ```
+
+### 🚀 **Standalone .EXE (Windows - No Python needed!)**
+
+**Pronto all'uso** `dist/fractal_viewer.exe` (~300MB, self-contained).
+
+```cmd
+dist\fractal_viewer.exe                           # Avvia Mandelbrot
+dist\fractal_viewer.exe --backend opencl          # GPU se disponibile
+dist\fractal_viewer.exe --type julia --fullscreen # Julia fullscreen
+dist\fractal_viewer.exe --help                    # Aiuto
+```
+
+**Ricostruisci**:
+```cmd
+build_exe.bat
+```
+
+**Compatibile**: Windows 11+, copia ovunque.
 
 ### Controlli
 
 | Tasto | Azione |
 |-------|--------|
-| **m** **j** **b** **t** **n** | Mandelbrot, Julia, Burning Ship, Tricorn, Newton |
+| **m** **j** **b** **t** **n** | Cambia frattale |
 | **+** **-** | Zoom |
-| **Frecce** | Spostamento |
+| **Frecce** | Sposta |
 | **Click** | Centra |
-| **r** | Reset vista |
+| **r** | Reset |
 | **[** **]** | Iterazioni |
-| **c** | Colormap |
-| **s** | Salva |
+| **c** | Colori |
+| **s** | Salva PNG |
 | **S** | Salva 4K |
-| **a** | Animazione zoom (GIF) |
-| **u** | Indietro zoom |
+| **a** | Anim GIF |
 | **x** | Copia parametri |
-| **v** | Passa da 2D a 3D (e viceversa) |
-| **1-4** | Julia: Re/Im(c) |
-| **5-9** | Julia: preset (dendrite, spirale, drago, elefante, snowflake) |
 
-### Modalità 3D
-
-Il programma supporta la visualizzazione 3D dei frattali come superficie:
-- L'asse Z (altezza) rappresenta il numero di iterazioni (in scala logaritmica)
-- Usa il mouse per ruotare, zoomare e spostare la vista
-- Premi **v** per passare dalla modalità 2D a 3D
-
-```bash
-python fractal_viewer.py --mode 3d
-```
+**Julia**: 1-4 Re/Im(c), 5-9 presets.
 
 ### Colormap
 
-`inferno`, `viridis`, `plasma`, `magma`, `turbo`, `hot`, `cool`, `winter`, `spring`, `summer`, `autumn`, `twilight`, `Spectral`, `RdYlBu`
+inferno, viridis, plasma, etc. (c per ciclare).
+
+**Repo commits**: 3 aggiunti per exe/build.
+
+Enjoy!
