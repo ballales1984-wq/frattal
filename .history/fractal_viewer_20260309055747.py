@@ -8,10 +8,11 @@ import subprocess
 import sys
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 try:
-    import pyopencl as cl  # pylint: disable=import-error
+    import pyopencl as cl
 
     _HAS_OPENCL = True
 except Exception:
@@ -961,6 +962,12 @@ def main() -> None:
     )
     parser.add_argument("--fullscreen", action="store_true", help="Avvia in fullscreen.")
     parser.add_argument("--smooth", action="store_true", help="Smooth coloring (sperimentale).")
+    parser.add_argument(
+        "--mode",
+        choices=["2d", "3d"],
+        default="2d",
+        help="Modalità di visualizzazione: '2d' (piana) o '3d' (superficie).",
+    )
 
     args = parser.parse_args()
 
@@ -970,5 +977,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 

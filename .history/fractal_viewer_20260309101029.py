@@ -8,10 +8,11 @@ import subprocess
 import sys
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 - needed for projection='3d'
 import numpy as np
 
 try:
-    import pyopencl as cl  # pylint: disable=import-error
+    import pyopencl as cl
 
     _HAS_OPENCL = True
 except Exception:
@@ -530,6 +531,12 @@ class FractalApp:
         self.smooth_coloring = getattr(args, "smooth", False)
         self.zoom_history: list[tuple[float, float, float]] = []
         self.fullscreen = getattr(args, "fullscreen", False)
+        self.view_mode = getattr(args, "mode", "2d")
+
+        if self.view_mode == "3d":
+            self._init_3d()
+        else:
+            self._init_2d()
 
         self.fig = plt.figure(figsize=(11, 6))
         gs = self.fig.add_gridspec(1, 2, width_ratios=[3, 1])
@@ -538,8 +545,25 @@ class FractalApp:
         self.image = None
         self.colorbar = None
 
+    def _init_2d(self) -> None:
+        """Inizializza la visualizzazione 2D."""
+        self.fig = plt.figure(figsize=(11, 6))
+        gs = self.fig.add_gridspec(1, 2, width_ratios=[3, 1])
+        self.ax = self.fig.add_subplot(gs[0])
+        self.ax_legend = self.fig.add_subplot(gs[1])
+
         self._draw_initial()
         self._connect_events()
+        if self.fullscreen:
+            self.fig.canvas.manager.window.state("zoomed")
+
+    def _init_3d(self) -> None:
+        """Inizializza la visualizzazione 3D."""
+        self.fig = plt.figure(figsize=(10, 8))
+        self.ax = self.fig.add_subplot(111, projection='3d')
+
+        self._draw_3d()
+        self._connect_events_3d()
         if self.fullscreen:
             self.fig.canvas.manager.window.state("zoomed")
 
@@ -729,6 +753,80 @@ class FractalApp:
 
         self._print_help()
 
+    def _draw_3d(self) -> None:
+        """Disegna il frattale in 3D come superficie."""
+        data, title = self._compute()
+        
+        # Downsampling for 3D performance (use fewer points)
+        step = max(1, min(self.width, self.height) // 200)
+        x_data = np.arange(0, self.width, step)
+        y_data = np.arange(0, self.height, step)
+        X, Y = np.meshgrid(x_data, y_data)
+        Z = data[::step, ::step]
+        
+        # Normalizza Z per una migliore visualizzazione
+        Z_norm = np.log1p(Z)  # log(1+Z) per migliorare la visualizzazione
+        
+        cmap = plt.get_cmap(self._get_cmap())
+        norm = plt.Normalize(vmin=Z_norm.min(), vmax=Z_norm.max())
+        colors = cmap(norm(Z_norm))
+        
+        self.surf = self.ax.plot_surface(
+            X, Y, Z_norm,
+            facecolors=colors,
+            linewidth=0,
+            antialiased=True,
+            shade=True
+        )
+        
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Iterazioni (log)')
+        self.ax.set_title(f'{title} - Visualizzazione 3D')
+        
+        # Legenda 3D
+        legend_text = (
+            "VISUALIZZAZIONE 3D\n"
+            "  Il frattale è rappresentato\n"
+            "  come superficie 3D dove\n"
+            "  l'altezza = iterazioni\n\n"
+            "CONTROLLI MOUSE\n"
+            "  click + drag = ruota\n"
+            "  scroll = zoom\n"
+            "  right click = pan\n\n"
+            "TASTIERA\n"
+            "  m = Mandelbrot\n"
+            "  j = Julia\n"
+            "  b = Burning Ship\n"
+            "  t = Tricorn\n"
+            "  n = Newton\n"
+            "  + - = zoom\n"
+            "  c = cambia colori\n"
+            "  r = reset vista\n"
+            "  v =切换 2D/3D"
+        )
+        self.ax.text2D(0.02, 0.98, legend_text, transform=self.ax.transAxes,
+                       fontsize=8, verticalalignment='top', family='monospace')
+        
+        self._print_help_3d()
+
+    def _print_help_3d(self) -> None:
+        """Stampa i comandi 3D nel terminale."""
+        help_text = """
+╔══════════════════════════════════════════════════════════════╗
+║  CONTROLLI 3D                                                 ║
+╠══════════════════════════════════════════════════════════════╣
+║  Mouse: click+drag=ruota, scroll=zoom, right=pan             ║
+║  m=Mandelbrot j=Julia b=BurningShip t=Tricorn n=Newton        ║
+║  + - zoom   c colori   r reset   v = passa a 2D               ║
+╚══════════════════════════════════════════════════════════════╝
+"""
+        print(help_text)
+
+    def _connect_events_3d(self) -> None:
+        """Connette gli eventi per la modalità 3D."""
+        self.fig.canvas.mpl_connect("key_press_event", self._on_key_3d)
+
     def _print_help(self) -> None:
         """Stampa i comandi disponibili nel terminale."""
         help_text = """
@@ -753,6 +851,64 @@ class FractalApp:
         self.image.set_data(data)
         self.image.set_cmap(self._get_cmap())
         self.ax.set_title(title)
+        self.fig.canvas.draw_idle()
+
+    def _update_view_3d(self) -> None:
+        """Aggiorna la visualizzazione 3D."""
+        data, title = self._compute()
+        
+        # Downsampling for 3D performance
+        step = max(1, min(self.width, self.height) // 200)
+        x_data = np.arange(0, self.width, step)
+        y_data = np.arange(0, self.height, step)
+        X, Y = np.meshgrid(x_data, y_data)
+        Z = data[::step, ::step]
+        Z_norm = np.log1p(Z)
+        
+        cmap = plt.get_cmap(self._get_cmap())
+        norm = plt.Normalize(vmin=Z_norm.min(), vmax=Z_norm.max())
+        colors = cmap(norm(Z_norm))
+        
+        # Rimuovi la superficie precedente senza usare clear()
+        if hasattr(self, 'surf') and self.surf is not None:
+            self.surf.remove()
+        
+        self.surf = self.ax.plot_surface(
+            X, Y, Z_norm,
+            facecolors=colors,
+            linewidth=0,
+            antialiased=True,
+            shade=True
+        )
+        
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Iterazioni (log)')
+        self.ax.set_title(f'{title} - Visualizzazione 3D')
+        
+        legend_text = (
+            "VISUALIZZAZIONE 3D\n"
+            "  Il frattale è rappresentato\n"
+            "  come superficie 3D dove\n"
+            "  l'altezza = iterazioni\n\n"
+            "CONTROLLI MOUSE\n"
+            "  click + drag = ruota\n"
+            "  scroll = zoom\n"
+            "  right click = pan\n\n"
+            "TASTIERA\n"
+            "  m = Mandelbrot\n"
+            "  j = Julia\n"
+            "  b = Burning Ship\n"
+            "  t = Tricorn\n"
+            "  n = Newton\n"
+            "  + - = zoom\n"
+            "  c = cambia colori\n"
+            "  r = reset vista\n"
+            "  v = passa a 2D"
+        )
+        self.ax.text2D(0.02, 0.98, legend_text, transform=self.ax.transAxes,
+                       fontsize=8, verticalalignment='top', family='monospace')
+        
         self.fig.canvas.draw_idle()
 
     def _on_scroll(self, event) -> None:
@@ -886,6 +1042,13 @@ class FractalApp:
         elif event.key == "right":
             self._push_zoom()
             self.x_center += 0.2 / self.zoom
+        elif event.key == "v":
+            # Switch between 2D and 3D
+            self.view_mode = "3d" if self.view_mode == "2d" else "2d"
+            plt.close(self.fig)
+            # Ricrea l'app con la nuova modalità
+            self.__init__(self.args)
+            return
         elif self.fractal_type == "julia":
             delta = 0.05
             if event.key in ("1", "numpad1"):
@@ -914,6 +1077,72 @@ class FractalApp:
             return
 
         self._update_view()
+
+    def _on_key_3d(self, event) -> None:
+        """Gestisce i tasti per la modalità 3D."""
+        if event.key == "m":
+            self.fractal_type = "mandelbrot"
+        elif event.key == "j":
+            self.fractal_type = "julia"
+        elif event.key == "b":
+            self.fractal_type = "burning_ship"
+        elif event.key == "t":
+            self.fractal_type = "tricorn"
+        elif event.key == "n":
+            self.fractal_type = "newton"
+        elif event.key == "v":
+            # Switch to 2D
+            self.view_mode = "2d"
+            plt.close(self.fig)
+            self._init_2d()
+            return
+        elif event.key == "c":
+            self.cmap_index += 1
+            self._update_view_3d()
+            print(f"Colormap: {self._get_cmap()}")
+            return
+        elif event.key in {"+", "add"}:
+            self.zoom *= 1.25
+        elif event.key in {"-", "subtract"}:
+            self.zoom /= 1.25
+        elif event.key == "r":
+            defaults = {
+                "mandelbrot": (-0.5, 0.0),
+                "julia": (0.0, 0.0),
+                "burning_ship": (-0.5, -0.5),
+                "tricorn": (-0.5, 0.0),
+                "newton": (0.0, 0.0),
+            }
+            self.x_center, self.y_center = defaults.get(self.fractal_type, (-0.5, 0.0))
+            self.zoom = 1.0
+        elif self.fractal_type == "julia":
+            delta = 0.05
+            if event.key in ("1", "numpad1"):
+                self.julia_c = complex(self.julia_c.real - delta, self.julia_c.imag)
+                print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
+            elif event.key in ("2", "numpad2"):
+                self.julia_c = complex(self.julia_c.real + delta, self.julia_c.imag)
+                print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
+            elif event.key in ("3", "numpad3"):
+                self.julia_c = complex(self.julia_c.real, self.julia_c.imag - delta)
+                print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
+            elif event.key in ("4", "numpad4"):
+                self.julia_c = complex(self.julia_c.real, self.julia_c.imag + delta)
+                print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
+            elif event.key in ("5", "6", "7", "8", "9"):
+                presets = list(JULIA_PRESETS.values())
+                idx = int(event.key) - 5
+                if idx < len(presets):
+                    re_c, im_c = presets[idx]
+                    self.julia_c = complex(re_c, im_c)
+                    name = list(JULIA_PRESETS.keys())[idx]
+                    print(f"Julia preset: {name} c={self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
+            else:
+                return
+        else:
+            return
+
+        self._update_view_3d()
 
 
 def main() -> None:
@@ -961,6 +1190,12 @@ def main() -> None:
     )
     parser.add_argument("--fullscreen", action="store_true", help="Avvia in fullscreen.")
     parser.add_argument("--smooth", action="store_true", help="Smooth coloring (sperimentale).")
+    parser.add_argument(
+        "--mode",
+        choices=["2d", "3d"],
+        default="2d",
+        help="Modalità di visualizzazione: '2d' (piana) o '3d' (superficie).",
+    )
 
     args = parser.parse_args()
 
@@ -970,5 +1205,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 

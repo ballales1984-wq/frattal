@@ -8,10 +8,11 @@ import subprocess
 import sys
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 try:
-    import pyopencl as cl  # pylint: disable=import-error
+    import pyopencl as cl
 
     _HAS_OPENCL = True
 except Exception:
@@ -530,6 +531,12 @@ class FractalApp:
         self.smooth_coloring = getattr(args, "smooth", False)
         self.zoom_history: list[tuple[float, float, float]] = []
         self.fullscreen = getattr(args, "fullscreen", False)
+        self.view_mode = getattr(args, "mode", "2d")
+
+        if self.view_mode == "3d":
+            self._init_3d()
+        else:
+            self._init_2d()
 
         self.fig = plt.figure(figsize=(11, 6))
         gs = self.fig.add_gridspec(1, 2, width_ratios=[3, 1])
@@ -538,8 +545,25 @@ class FractalApp:
         self.image = None
         self.colorbar = None
 
+    def _init_2d(self) -> None:
+        """Inizializza la visualizzazione 2D."""
+        self.fig = plt.figure(figsize=(11, 6))
+        gs = self.fig.add_gridspec(1, 2, width_ratios=[3, 1])
+        self.ax = self.fig.add_subplot(gs[0])
+        self.ax_legend = self.fig.add_subplot(gs[1])
+
         self._draw_initial()
         self._connect_events()
+        if self.fullscreen:
+            self.fig.canvas.manager.window.state("zoomed")
+
+    def _init_3d(self) -> None:
+        """Inizializza la visualizzazione 3D."""
+        self.fig = plt.figure(figsize=(10, 8))
+        self.ax = self.fig.add_subplot(111, projection='3d')
+
+        self._draw_3d()
+        self._connect_events_3d()
         if self.fullscreen:
             self.fig.canvas.manager.window.state("zoomed")
 
@@ -961,6 +985,12 @@ def main() -> None:
     )
     parser.add_argument("--fullscreen", action="store_true", help="Avvia in fullscreen.")
     parser.add_argument("--smooth", action="store_true", help="Smooth coloring (sperimentale).")
+    parser.add_argument(
+        "--mode",
+        choices=["2d", "3d"],
+        default="2d",
+        help="Modalità di visualizzazione: '2d' (piana) o '3d' (superficie).",
+    )
 
     args = parser.parse_args()
 
