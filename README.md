@@ -1,4 +1,4 @@
-## Visualizzatore di frattali in Python
+# Visualizzatore di frattali in Python
 
 Visualizzatore interattivo con supporto **GPU (OpenCL)** per AMD Radeon.
 
@@ -41,6 +41,7 @@ dist\fractal_viewer.exe --help                    # Aiuto
 ```
 
 **Ricostruisci**:
+
 ```cmd
 build_exe.bat
 ```
@@ -50,7 +51,7 @@ build_exe.bat
 ### Controlli
 
 | Tasto | Azione |
-|-------|--------|
+| --- | --- |
 | **m** **j** **b** **t** **n** | Cambia frattale |
 | **+** **-** | Zoom |
 | **Frecce** | Sposta |
