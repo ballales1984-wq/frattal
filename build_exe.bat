@@ -1,7 +1,7 @@
 @echo off
 rem Build standalone fractal_viewer.exe
 rem Using Python 3.11 for better compatibility with matplotlib 3.6.3
-set PYTHON=C:\Users\user\AppData\Local\Programs\Python\Python311\python.exe
+set PYTHON=C:\Users\user\AppData\Local\Programs\Python\Python310\python.exe
 
 if exist fractal_exe_env rmdir /s /q fractal_exe_env
 %PYTHON% -m venv fractal_exe_env

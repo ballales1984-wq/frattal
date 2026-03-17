@@ -706,8 +706,8 @@ class FractalApp:
             "  click = centra qui\n"
             "  r = reset vista\n\n"
             "PARAMETRI\n"
-            "  [ = meno iterazioni\n"
-            "  ] = più iterazioni\n"
+            "  < = meno iterazioni\n"
+            "  ] = piuù iterazioni\n"
             "  c = cambia colori\n\n"
             "SALVA\n"
             "  s = salva   S = 4K   a = anim\n\n"
@@ -735,7 +735,7 @@ class FractalApp:
 CONTROLLI FRATTALE
   m=Mandelbrot j=Julia b=BurningShip t=Tricorn n=Newton
   + - zoom   frecce sposta   click centra   r reset
-  [ ] iter   c colori   s salva   S 4K   a anim   u indietro
+  < > iter   c colori   s salva   S 4K   a anim   u indietro
   x copia params   Julia: 1-4 Re/Im   5-9 preset
 """
         print(help_text)
@@ -855,10 +855,10 @@ CONTROLLI FRATTALE
         elif event.key in {"-", "subtract"}:
             self._push_zoom()
             self.zoom /= 1.25
-        elif event.key == "[":
+        elif event.key in {"<", "comma"}:
             self.max_iter = max(10, self.max_iter - 50)
             print(f"max_iter = {self.max_iter}")
-        elif event.key == "]":
+        elif event.key in {">", "period"}:
             self.max_iter = min(5000, self.max_iter + 50)
             print(f"max_iter = {self.max_iter}")
         elif event.key == "r":
