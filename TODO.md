@@ -12,4 +12,4 @@ Repo commits up-to-date (cc77f70).
 - [ ] Step 6: Build exe (pyinstaller --onefile --windowed --name fractal_viewer fractal_viewer.py) [RUNNING]
 - [ ] Step 7: Test dist/fractal_viewer.exe (run GUI, check OpenCL/CPU fallback)
 - [ ] Step 8: Update README.md with build/run exe instructions + build.bat script
-- [ ] Step 9: Commit/push build.bat + README update, complete task
+- [x] Step 9: Commit/push build.bat + README update, complete task
