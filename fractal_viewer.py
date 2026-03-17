@@ -712,8 +712,9 @@ class FractalApp:
             "SALVA\n"
             "  s = salva   S = 4K   a = anim\n\n"
             "SOLO JULIA\n"
-            "  1-4 = Re/Im(c)\n"
-            "  5-9 = preset (dendrite, spirale...)\n\n"
+            "  q/e = Re(c) -/+\n"
+            "  a/d = Im(c) -/+\n"
+            "  1-4 = preset (dendrite, spirale...)\n\n"
             "  u = indietro zoom\n"
             "  x = copia parametri"
         )
@@ -736,7 +737,7 @@ CONTROLLI FRATTALE
   m=Mandelbrot j=Julia b=BurningShip t=Tricorn n=Newton
   + - zoom   frecce sposta   click centra   r reset
   < > iter   c colori   s salva   S 4K   a anim   u indietro
-  x copia params   Julia: 1-4 Re/Im   5-9 preset
+  x copia params   Julia: q/e Re   a/d Im   1-4 preset
 """
         print(help_text)
 
@@ -885,21 +886,21 @@ CONTROLLI FRATTALE
             self.x_center += 0.2 / self.zoom
         elif self.fractal_type == "julia":
             delta = 0.05
-            if event.key in ("1", "numpad1"):
+            if event.key in ("q", "Q"):
                 self.julia_c = complex(self.julia_c.real - delta, self.julia_c.imag)
                 print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
-            elif event.key in ("2", "numpad2"):
+            elif event.key in ("e", "E"):
                 self.julia_c = complex(self.julia_c.real + delta, self.julia_c.imag)
                 print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
-            elif event.key in ("3", "numpad3"):
+            elif event.key in ("a", "A"):
                 self.julia_c = complex(self.julia_c.real, self.julia_c.imag - delta)
                 print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
-            elif event.key in ("4", "numpad4"):
+            elif event.key in ("d", "D"):
                 self.julia_c = complex(self.julia_c.real, self.julia_c.imag + delta)
                 print(f"Julia c = {self.julia_c.real:.3f}+{self.julia_c.imag:.3f}i")
-            elif event.key in ("5", "6", "7", "8", "9"):
+            elif event.key in ("1", "2", "3", "4"):
                 presets = list(JULIA_PRESETS.values())
-                idx = int(event.key) - 5
+                idx = int(event.key) - 1
                 if idx < len(presets):
                     re_c, im_c = presets[idx]
                     self.julia_c = complex(re_c, im_c)
